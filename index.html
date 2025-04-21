@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contador de Amizade</title>
+    <style>
+        @font-face {
+            font-family: 'Whitney Book';
+            src: url('whitney-book.otf') format('opentype');
+        }
+        
+        @font-face {
+            font-family: 'Whitney Semibold';
+            src: url('whitney-semibold.otf') format('opentype');
+        }
+        
+        body {
+            font-family: 'Whitney Book', sans-serif;
+            background-color: #36393F;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .pair-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .nickname {
+            font-family: 'Whitney Semibold', sans-serif;
+            font-size: 20px;
+        }
+        
+        .timer {
+            font-size: 18px;
+            margin-top: 5px;
+        }
+        
+        .divider {
+            width: 2px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.2);
+            margin: 0 20px;
+        }
+        
+        .message-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            max-width: 600px;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .message {
+            font-size: 16px;
+            font-style: italic;
+        }
+        
+        /* Estilo do botão de áudio */
+        .audio-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #7289DA;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+        
+        .audio-control:hover {
+            background-color: #677BC4;
+            transform: scale(1.1);
+        }
+        
+        .audio-icon {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            /* Filtro para deixar o ícone branco */
+            filter: brightness(0) invert(1);
+        }
+        
+        /* Aviso de autoplay */
+        .autoplay-warning {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            max-width: 200px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="pair-container">
+            <div class="profile">
+                <img src="madara.png" alt="Madara" class="profile-pic">
+                <span class="nickname">Madara X Renan_20br</span>
+                <img src="revii.png" alt="Renan" class="profile-pic">
+            </div>
+            <div class="timer-container">
+                <div class="timer" id="timer1">Calculando tempo de amizade...</div>
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="pair-container">
+            <div class="profile">
+                <img src="tfs.png" alt="LuanTS" class="profile-pic">
+                <span class="nickname">LuanTS X Renan_20br</span>
+                <img src="revii.png" alt="Renan" class="profile-pic">
+            </div>
+            <div class="timer-container">
+                <div class="timer" id="timer2">Calculando tempo de amizade...</div>
+            </div>
+        </div>
+        
+        <div class="message-box">
+            <div class="message" id="message"></div>
+        </div>
+    </div>
+    
+    <!-- Elemento de áudio -->
+    <audio id="bgMusic" loop>
+        <source src="revii.mp3" type="audio/mpeg">
+        Seu navegador não suporta áudio HTML5.
+    </audio>
+    
+    <!-- Botão de controle de áudio com ícones PNG -->
+    <button class="audio-control" id="audioControl">
+        <img src="mute.png" alt="Mute" class="audio-icon" id="audioIcon">
+    </button>
+    
+    <!-- Aviso de autoplay -->
+    <div class="autoplay-warning" id="autoplayWarning">
+        Clique em qualquer lugar para ativar a música!
+    </div>
+    
+    <script>
+        // Mensagens especiais
+        const mensagens = [
+            "E aí, meus manos! Essa é a minha singela homenagem a esses 5 anos.",
+            "Afinal, os manos são os manos!",
+            "E a gente sempre deve dividir um pedaço de carne de mico-leão com os amigos, né? Haha!",
+            "Madara e LuanTS! Nunca esqueçam o lema ROTA: piedade... eu desconheço!"
+        ];
+        
+        // Datas importantes
+        const dataInicioMadara = new Date(2020, 4, 5, 12, 45, 17);
+        const dataInicioLuan = new Date(2020, 4, 5, 22, 6, 49);
+        
+        // Elementos da página
+        const timerMadara = document.getElementById('timer1');
+        const timerLuan = document.getElementById('timer2');
+        const mensagemElemento = document.getElementById('message');
+        const musica = document.getElementById('bgMusic');
+        const botaoAudio = document.getElementById('audioControl');
+        const iconeAudio = document.getElementById('audioIcon');
+        const avisoAutoplay = document.getElementById('autoplayWarning');
+        
+        // Controle de música
+        let musicaAtivada = false;
+        
+        // Função para tentar tocar a música
+        function tentarTocarMusica() {
+            musica.play()
+                .then(() => {
+                    musicaAtivada = true;
+                    iconeAudio.src = "unmute.png";
+                    avisoAutoplay.style.display = 'none';
+                })
+                .catch(err => {
+                    console.log("Autoplay bloqueado:", err);
+                    avisoAutoplay.style.display = 'block';
+                });
+        }
+        
+        // Configurar eventos de clique
+        document.body.addEventListener('click', () => {
+            if (!musicaAtivada) {
+                tentarTocarMusica();
+            }
+        }, { once: true });
+        
+        botaoAudio.addEventListener('click', () => {
+            if (musicaAtivada) {
+                musica.pause();
+                iconeAudio.src = "mute.png";
+            } else {
+                musica.play();
+                iconeAudio.src = "unmute.png";
+            }
+            musicaAtivada = !musicaAtivada;
+        });
+        
+        // Atualizar os contadores
+        function atualizarContadores() {
+            const agora = new Date();
+            
+            // Tempo com Madara
+            const diferencaMadara = agora - dataInicioMadara;
+            const anosMadara = Math.floor(diferencaMadara / (1000 * 60 * 60 * 24 * 365));
+            const diasMadara = Math.floor((diferencaMadara % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24));
+            const horasMadara = Math.floor((diferencaMadara % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutosMadara = Math.floor((diferencaMadara % (1000 * 60 * 60)) / (1000 * 60));
+            const segundosMadara = Math.floor((diferencaMadara % (1000 * 60)) / 1000);
+            
+            timerMadara.textContent = 
+                `${anosMadara} anos, ${diasMadara} dias, ${horasMadara} horas, ${minutosMadara} minutos e ${segundosMadara} segundos`;
+            
+            // Tempo com Luan
+            const diferencaLuan = agora - dataInicioLuan;
+            const anosLuan = Math.floor(diferencaLuan / (1000 * 60 * 60 * 24 * 365));
+            const diasLuan = Math.floor((diferencaLuan % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24));
+            const horasLuan = Math.floor((diferencaLuan % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutosLuan = Math.floor((diferencaLuan % (1000 * 60 * 60)) / (1000 * 60));
+            const segundosLuan = Math.floor((diferencaLuan % (1000 * 60)) / 1000);
+            
+            timerLuan.textContent = 
+                `${anosLuan} anos, ${diasLuan} dias, ${horasLuan} horas, ${minutosLuan} minutos e ${segundosLuan} segundos`;
+        }
+        
+        // Rotacionar mensagens
+        let mensagemAtual = 0;
+        
+        function rotacionarMensagens() {
+            mensagemElemento.textContent = mensagens[mensagemAtual];
+            mensagemAtual = (mensagemAtual + 1) % mensagens.length;
+        }
+        
+        // Iniciar tudo
+        atualizarContadores();
+        setInterval(atualizarContadores, 1000);
+        
+        rotacionarMensagens();
+        setInterval(rotacionarMensagens, 8000);
+        
+        // Esconder aviso após 10 segundos
+        setTimeout(() => {
+            avisoAutoplay.style.display = 'none';
+        }, 10000);
+    </script>
+</body>
+</html>
